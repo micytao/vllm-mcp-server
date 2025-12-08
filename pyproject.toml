@@ -9,6 +9,12 @@ authors = [
     {name = "vLLM MCP Server Contributors"}
 ]
 keywords = ["mcp", "vllm", "llm", "ai", "server"]
+
+[project.urls]
+Homepage = "https://github.com/micytao/vllm-mcp-server"
+Repository = "https://github.com/micytao/vllm-mcp-server"
+Issues = "https://github.com/micytao/vllm-mcp-server/issues"
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
