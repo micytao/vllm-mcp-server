@@ -31,7 +31,7 @@ pip install vllm-mcp-server
 ### From Source
 
 ```bash
-git clone https://github.com/your-org/vllm-mcp-server.git
+git clone https://github.com/micytao/vllm-mcp-server.git
 cd vllm-mcp-server
 pip install -e .
 ```
@@ -319,7 +319,7 @@ Pre-defined prompts for common tasks:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/vllm-mcp-server.git
+git clone https://github.com/micytao/vllm-mcp-server.git
 cd vllm-mcp-server
 
 # Install uv if you haven't already
