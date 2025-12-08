@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     base_url: str = "http://localhost:8000"
     api_key: Optional[str] = None
     model: Optional[str] = None
+    
+    # HuggingFace Configuration
+    hf_token: Optional[str] = None  # HuggingFace token for gated models
 
     # Request Defaults
     default_temperature: float = 0.7

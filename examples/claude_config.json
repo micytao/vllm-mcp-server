@@ -4,8 +4,10 @@
       "command": "uvx",
       "args": ["vllm-mcp-server"],
       "env": {
+        "PATH": "/opt/podman/bin:/usr/local/bin:/usr/bin:/bin",
         "VLLM_BASE_URL": "http://localhost:8000",
-        "VLLM_MODEL": "meta-llama/Llama-2-7b-chat-hf",
+        "VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "VLLM_HF_TOKEN": "hf_xxxxxxxxxxxxxxxxxxxx",
         "VLLM_CONTAINER_RUNTIME": "podman",
         "VLLM_DOCKER_IMAGE_MACOS": "quay.io/rh_ee_micyang/vllm-service:macos",
         "VLLM_DOCKER_IMAGE_CPU": "quay.io/rh_ee_micyang/vllm-service:cpu"

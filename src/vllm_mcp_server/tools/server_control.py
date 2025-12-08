@@ -354,6 +354,10 @@ async def start_vllm(arguments: dict[str, Any]) -> list[TextContent]:
         "-e", f"HF_HOME={container_hf_home}",
     ]
     
+    # Add HuggingFace token if configured (required for gated models)
+    if settings.hf_token:
+        cmd.extend(["-e", f"HF_TOKEN={settings.hf_token}"])
+    
     if use_env_config:
         # Configure via environment variables for macOS/CPU images
         # These images use a startup script that reads VLLM_* env vars
