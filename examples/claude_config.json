@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "vllm": {
+      "command": "uvx",
+      "args": ["vllm-mcp-server"],
+      "env": {
+        "VLLM_BASE_URL": "http://localhost:8000",
+        "VLLM_MODEL": "meta-llama/Llama-2-7b-chat-hf",
+        "VLLM_CONTAINER_RUNTIME": "podman",
+        "VLLM_DOCKER_IMAGE_MACOS": "quay.io/rh_ee_micyang/vllm-service:macos",
+        "VLLM_DOCKER_IMAGE_CPU": "quay.io/rh_ee_micyang/vllm-service:cpu"
+      }
+    }
+  }
+}
