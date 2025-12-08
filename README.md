@@ -1,7 +1,7 @@
 # vLLM MCP Server
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that exposes vLLM capabilities to AI assistants like Claude, Cursor, and other MCP-compatible clients.
 
@@ -373,7 +373,7 @@ vllm-mcp-server/
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
