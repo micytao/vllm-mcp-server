@@ -20,19 +20,19 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that e
 
 Use the `start_vllm` tool to launch a vLLM container with automatic platform detection:
 
-![Start vLLM Server](https://raw.githubusercontent.com/micytao/vllm-mcp-server/main/assets/vllm-mcp-start.gif)
+![Start vLLM Server](assets/vllm-mcp-start.gif)
 
 ### Chat with vLLM
 
 Send chat messages using the `vllm_chat` tool:
 
-![Chat with vLLM](https://raw.githubusercontent.com/micytao/vllm-mcp-server/main/assets/vllm-mcp-chat.gif)
+![Chat with vLLM](assets/vllm-mcp-chat.gif)
 
 ### Stop vLLM Server
 
 Clean up with the `stop_vllm` tool:
 
-![Stop vLLM Server](https://raw.githubusercontent.com/micytao/vllm-mcp-server/main/assets/vllm-mcp-stop.gif)
+![Stop vLLM Server](assets/vllm-mcp-stop.gif)
 
 ## Installation
 
