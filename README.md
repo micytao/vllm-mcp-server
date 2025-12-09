@@ -10,7 +10,7 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that e
 - 🚀 **Chat & Completion**: Send chat messages and text completions to vLLM
 - 📋 **Model Management**: List and inspect available models
 - 📊 **Server Monitoring**: Check server health and performance metrics
-- 🐳 **Platform-Aware Container Control**: Supports both Podman and Docker. Automatically detects your platform (Linux/macOS/Windows) and GPU availability, selecting the appropriate container image
+- 🐳 **Platform-Aware Container Control**: Supports both Podman and Docker. Automatically detects your platform (Linux/macOS/Windows) and GPU availability, selecting the appropriate container image and optimal settings (e.g., `max_model_len`)
 - 📈 **Benchmarking**: Run GuideLLM benchmarks (optional)
 - 💬 **Pre-defined Prompts**: Use curated system prompts for common tasks
 
@@ -115,12 +115,15 @@ Add to `~/.cursor/mcp.json`:
       "args": ["vllm-mcp-server"],
       "env": {
         "VLLM_BASE_URL": "http://localhost:8000",
-        "VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        "VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "VLLM_HF_TOKEN": "hf_your_token_here"
       }
     }
   }
 }
 ```
+
+> **Note:** `VLLM_HF_TOKEN` is required for gated models like Llama. Get your token from [HuggingFace Settings](https://huggingface.co/settings/tokens).
 
 #### Claude Desktop
 
@@ -133,7 +136,8 @@ Add to your Claude Desktop configuration:
       "command": "uvx",
       "args": ["vllm-mcp-server"],
       "env": {
-        "VLLM_BASE_URL": "http://localhost:8000"
+        "VLLM_BASE_URL": "http://localhost:8000",
+        "VLLM_HF_TOKEN": "hf_your_token_here"
       }
     }
   }
@@ -167,6 +171,7 @@ Configure the server using environment variables:
 | `VLLM_BASE_URL` | vLLM server URL | `http://localhost:8000` |
 | `VLLM_API_KEY` | API key (if required) | `None` |
 | `VLLM_MODEL` | Default model to use | `None` (auto-detect) |
+| `VLLM_HF_TOKEN` | HuggingFace token for gated models (e.g., Llama) | `None` |
 | `VLLM_DEFAULT_TEMPERATURE` | Default temperature | `0.7` |
 | `VLLM_DEFAULT_MAX_TOKENS` | Default max tokens | `1024` |
 | `VLLM_DEFAULT_TIMEOUT` | Request timeout (seconds) | `60.0` |
@@ -234,14 +239,16 @@ Check the health and status of the vLLM server.
 
 The server control tools support both **Podman** (preferred) and **Docker**, automatically detecting your platform and GPU availability:
 
-| Platform | GPU Support | Container Image |
-|----------|-------------|-----------------|
-| Linux (GPU) | ✅ NVIDIA | `vllm/vllm-openai:latest` |
-| Linux (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-service:cpu` |
-| macOS (Apple Silicon) | ❌ | `quay.io/rh_ee_micyang/vllm-service:macos` |
-| macOS (Intel) | ❌ | `quay.io/rh_ee_micyang/vllm-service:macos` |
-| Windows (GPU) | ✅ NVIDIA | `vllm/vllm-openai:latest` |
-| Windows (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-service:cpu` |
+| Platform | GPU Support | Container Image | Default `max_model_len` |
+|----------|-------------|-----------------|------------------------|
+| Linux (GPU) | ✅ NVIDIA | `vllm/vllm-openai:latest` | 8096 |
+| Linux (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-service:cpu` | 2048 |
+| macOS (Apple Silicon) | ❌ | `quay.io/rh_ee_micyang/vllm-service:macos` | 2048 |
+| macOS (Intel) | ❌ | `quay.io/rh_ee_micyang/vllm-service:macos` | 2048 |
+| Windows (GPU) | ✅ NVIDIA | `vllm/vllm-openai:latest` | 8096 |
+| Windows (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-service:cpu` | 2048 |
+
+> **Note:** The `max_model_len` is automatically set based on the detected mode (CPU vs GPU). CPU mode uses 2048 to match vLLM's `max_num_batched_tokens` limit, while GPU mode uses 8096 for larger context. You can override this by explicitly passing `max_model_len` to `start_vllm`.
 
 #### `start_vllm`
 
@@ -254,10 +261,12 @@ Start a vLLM server in a Docker container with automatic platform detection.
   "gpu_memory_utilization": 0.9,
   "cpu_only": false,
   "tensor_parallel_size": 1,
-  "max_model_len": 4096,
+  "max_model_len": null,
   "dtype": "auto"
 }
 ```
+
+> **Note:** If `max_model_len` is not specified (or `null`), it defaults to **2048 for CPU mode** or **8096 for GPU mode**.
 
 #### `stop_vllm`
 
@@ -352,6 +361,35 @@ source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
 # Install with dev dependencies
 uv pip install -e ".[dev]"
 ```
+
+### Local Development with Cursor
+
+For debugging and local development, configure Cursor to run from source using `uv run` instead of `uvx`:
+
+Add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "vllm": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/vllm-mcp-server",
+        "run",
+        "vllm-mcp-server"
+      ],
+      "env": {
+        "VLLM_BASE_URL": "http://localhost:8000",
+        "VLLM_HF_TOKEN": "hf_your_token_here",
+        "VLLM_CONTAINER_RUNTIME": "podman"
+      }
+    }
+  }
+}
+```
+
+This runs the MCP server directly from your local source code, so any changes you make will be reflected immediately after restarting Cursor.
 
 ### Running Tests
 

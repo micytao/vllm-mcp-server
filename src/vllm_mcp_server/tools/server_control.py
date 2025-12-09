@@ -321,6 +321,13 @@ async def start_vllm(arguments: dict[str, Any]) -> list[TextContent]:
     # Determine GPU mode
     use_gpu = platform_info.has_nvidia_gpu and not cpu_only and platform_info.gpu_flags
     
+    # Set default max_model_len based on GPU/CPU mode if not specified
+    if max_model_len is None:
+        if use_gpu:
+            max_model_len = 8096  # Default for GPU mode
+        else:
+            max_model_len = 2048  # Default for CPU mode (matches max_num_batched_tokens)
+    
     # Select appropriate container image based on platform
     docker_image = arguments.get("docker_image")  # Allow override
     if not docker_image:
