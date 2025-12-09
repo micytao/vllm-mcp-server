@@ -14,6 +14,26 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that e
 - 📈 **Benchmarking**: Run GuideLLM benchmarks (optional)
 - 💬 **Pre-defined Prompts**: Use curated system prompts for common tasks
 
+## Demo
+
+### Start vLLM Server
+
+Use the `start_vllm` tool to launch a vLLM container with automatic platform detection:
+
+![Start vLLM Server](assets/vllm-mcp-start.gif)
+
+### Chat with vLLM
+
+Send chat messages using the `vllm_chat` tool:
+
+![Chat with vLLM](assets/vllm-mcp-chat.gif)
+
+### Stop vLLM Server
+
+Clean up with the `stop_vllm` tool:
+
+![Stop vLLM Server](assets/vllm-mcp-stop.gif)
+
 ## Installation
 
 ### Using uvx (Recommended)
