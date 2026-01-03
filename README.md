@@ -20,19 +20,19 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that e
 
 Use the `start_vllm` tool to launch a vLLM container with automatic platform detection:
 
-![Start vLLM Server](assets/vllm-mcp-start.gif)
+![Start vLLM Server](https://raw.githubusercontent.com/micytao/vllm-mcp-server/main/assets/vllm-mcp-start.gif)
 
 ### Chat with vLLM
 
 Send chat messages using the `vllm_chat` tool:
 
-![Chat with vLLM](assets/vllm-mcp-chat.gif)
+![Chat with vLLM](https://raw.githubusercontent.com/micytao/vllm-mcp-server/main/assets/vllm-mcp-chat.gif)
 
 ### Stop vLLM Server
 
 Clean up with the `stop_vllm` tool:
 
-![Stop vLLM Server](assets/vllm-mcp-stop.gif)
+![Stop vLLM Server](https://raw.githubusercontent.com/micytao/vllm-mcp-server/main/assets/vllm-mcp-stop.gif)
 
 ## Installation
 
@@ -82,17 +82,18 @@ podman run --device nvidia.com/gpu=all -p 8000:8000 \
 
 ```bash
 podman run -p 8000:8000 \
-  quay.io/rh_ee_micyang/vllm-service:macos \
-  --model TinyLlama/TinyLlama-1.1B-Chat-v1.0
+  quay.io/rh_ee_micyang/vllm-mac:v0.11.0 \
+  --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
+  --device cpu --dtype bfloat16
 ```
 
 **Linux/Windows CPU-only:**
 
 ```bash
 podman run -p 8000:8000 \
-  quay.io/rh_ee_micyang/vllm-service:cpu \
+  quay.io/rh_ee_micyang/vllm-cpu:v0.11.0 \
   --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
-  --device cpu --dtype float32
+  --device cpu --dtype bfloat16
 ```
 
 #### Option C: Native vLLM Installation
@@ -177,8 +178,8 @@ Configure the server using environment variables:
 | `VLLM_DEFAULT_TIMEOUT` | Request timeout (seconds) | `60.0` |
 | `VLLM_CONTAINER_RUNTIME` | Container runtime (`podman`, `docker`, or auto) | `None` (auto-detect, prefers Podman) |
 | `VLLM_DOCKER_IMAGE` | Container image (GPU mode) | `vllm/vllm-openai:latest` |
-| `VLLM_DOCKER_IMAGE_MACOS` | Container image (macOS) | `quay.io/rh_ee_micyang/vllm-service:macos` |
-| `VLLM_DOCKER_IMAGE_CPU` | Container image (CPU mode) | `quay.io/rh_ee_micyang/vllm-service:cpu` |
+| `VLLM_DOCKER_IMAGE_MACOS` | Container image (macOS) | `quay.io/rh_ee_micyang/vllm-mac:v0.11.0` |
+| `VLLM_DOCKER_IMAGE_CPU` | Container image (CPU mode) | `quay.io/rh_ee_micyang/vllm-cpu:v0.11.0` |
 | `VLLM_CONTAINER_NAME` | Container name | `vllm-server` |
 | `VLLM_GPU_MEMORY_UTILIZATION` | GPU memory fraction | `0.9` |
 
@@ -242,11 +243,11 @@ The server control tools support both **Podman** (preferred) and **Docker**, aut
 | Platform | GPU Support | Container Image | Default `max_model_len` |
 |----------|-------------|-----------------|------------------------|
 | Linux (GPU) | ✅ NVIDIA | `vllm/vllm-openai:latest` | 8096 |
-| Linux (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-service:cpu` | 2048 |
-| macOS (Apple Silicon) | ❌ | `quay.io/rh_ee_micyang/vllm-service:macos` | 2048 |
-| macOS (Intel) | ❌ | `quay.io/rh_ee_micyang/vllm-service:macos` | 2048 |
+| Linux (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-cpu:v0.11.0` | 2048 |
+| macOS (Apple Silicon) | ❌ | `quay.io/rh_ee_micyang/vllm-mac:v0.11.0` | 2048 |
+| macOS (Intel) | ❌ | `quay.io/rh_ee_micyang/vllm-mac:v0.11.0` | 2048 |
 | Windows (GPU) | ✅ NVIDIA | `vllm/vllm-openai:latest` | 8096 |
-| Windows (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-service:cpu` | 2048 |
+| Windows (CPU) | ❌ | `quay.io/rh_ee_micyang/vllm-cpu:v0.11.0` | 2048 |
 
 > **Note:** The `max_model_len` is automatically set based on the detected mode (CPU vs GPU). CPU mode uses 2048 to match vLLM's `max_num_batched_tokens` limit, while GPU mode uses 8096 for larger context. You can override this by explicitly passing `max_model_len` to `start_vllm`.
 

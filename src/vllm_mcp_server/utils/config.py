@@ -32,8 +32,8 @@ class Settings(BaseSettings):
     # Server Control (for container mode)
     container_runtime: Optional[str] = None  # "podman", "docker", or None for auto-detect
     docker_image: str = "vllm/vllm-openai:0.11.0"
-    docker_image_macos: str = "quay.io/rh_ee_micyang/vllm-service:macos"
-    docker_image_cpu: str = "quay.io/rh_ee_micyang/vllm-service:cpu"
+    docker_image_macos: str = "quay.io/rh_ee_micyang/vllm-mac:v0.11.0"
+    docker_image_cpu: str = "quay.io/rh_ee_micyang/vllm-cpu:v0.11.0"
     container_name: str = "vllm-server"
     gpu_memory_utilization: float = 0.9
 

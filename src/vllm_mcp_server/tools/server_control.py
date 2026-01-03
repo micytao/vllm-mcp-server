@@ -341,15 +341,12 @@ async def start_vllm(arguments: dict[str, Any]) -> list[TextContent]:
             # CPU mode (Linux x86_64, Windows without GPU)
             docker_image = settings.docker_image_cpu
 
-    # Check if using macOS/CPU image that requires environment variable configuration
-    use_env_config = (
-        platform_info.platform in (Platform.MACOS_ARM, Platform.MACOS_INTEL) 
-        and not arguments.get("docker_image")
-    ) or docker_image in (settings.docker_image_macos, settings.docker_image_cpu)
-    
     # Determine container home directory based on image type
-    # macOS/CPU images run as user 'vllm' (not root), so use /home/vllm
-    container_hf_home = "/home/vllm/.cache/huggingface" if use_env_config else "/root/.cache/huggingface"
+    # GPU images (vllm/vllm-openai) run as root, CPU/macOS images run as user 'vllm'
+    if use_gpu:
+        container_hf_home = "/root/.cache/huggingface"
+    else:
+        container_hf_home = "/home/vllm/.cache/huggingface"
     
     # Build container run command
     cmd = [
@@ -365,25 +362,24 @@ async def start_vllm(arguments: dict[str, Any]) -> list[TextContent]:
     if settings.hf_token:
         cmd.extend(["-e", f"HF_TOKEN={settings.hf_token}"])
     
-    if use_env_config:
-        # Configure via environment variables for macOS/CPU images
-        # These images use a startup script that reads VLLM_* env vars
-        cmd.extend(["-e", f"VLLM_MODEL={model}"])
-        
-        # Use bfloat16 for CPU mode (supported by the image)
-        if dtype == "auto":
-            dtype = "bfloat16"
-        cmd.extend(["-e", f"VLLM_DTYPE={dtype}"])
-        
-        if max_model_len:
-            cmd.extend(["-e", f"VLLM_MAX_MODEL_LEN={max_model_len}"])
-        
-        # CPU-specific settings
+    # Pass vLLM configuration as environment variables (reserved for compatibility)
+    cmd.extend(["-e", f"VLLM_MODEL={model}"])
+    
+    # Determine dtype for CPU mode
+    effective_dtype = dtype
+    if not use_gpu and effective_dtype == "auto":
+        effective_dtype = "bfloat16"  # Use bfloat16 for CPU mode
+    cmd.extend(["-e", f"VLLM_DTYPE={effective_dtype}"])
+    
+    if max_model_len:
+        cmd.extend(["-e", f"VLLM_MAX_MODEL_LEN={max_model_len}"])
+    
+    # CPU-specific settings
+    if not use_gpu:
         cpu_kvcache_space = arguments.get("cpu_kvcache_space", 4)
         cmd.extend(["-e", f"VLLM_CPU_KVCACHE_SPACE={cpu_kvcache_space}"])
-    else:
-        # GPU mode - will use command-line arguments after the image
-        pass
+        cmd.extend(["-e", "VLLM_TARGET_DEVICE=cpu"])
+        cmd.extend(["-e", "VLLM_PLATFORM=cpu"])
     
     # Add GPU flags if available
     if use_gpu:
@@ -395,30 +391,32 @@ async def start_vllm(arguments: dict[str, Any]) -> list[TextContent]:
     # Add the container image
     cmd.append(docker_image)
     
-    # For GPU images, add vLLM command-line arguments after the image
-    if not use_env_config:
-        cmd.extend(["--model", model])
-        
-        if use_gpu:
-            cmd.extend(["--gpu-memory-utilization", str(gpu_memory)])
-            if tensor_parallel_size > 1:
-                cmd.extend(["--tensor-parallel-size", str(tensor_parallel_size)])
+    # Add vLLM command-line arguments after the image
+    # Both official vllm-openai image and custom images support CLI args
+    # (Custom images use entrypoint.sh that passes through all arguments)
+    # Note: VLLM_MODEL, VLLM_DTYPE, VLLM_MAX_MODEL_LEN, VLLM_CPU_KVCACHE_SPACE
+    # are also passed as environment variables (see above) for compatibility.
+    cmd.extend(["--model", model])
+    cmd.extend(["--host", "0.0.0.0"])
+    cmd.extend(["--port", "8000"])
+    cmd.extend(["--dtype", effective_dtype])
+    
+    if max_model_len:
+        cmd.extend(["--max-model-len", str(max_model_len)])
+        cmd.extend(["--max-num-batched-tokens", str(max_model_len)])
+    
+    if use_gpu:
+        # GPU-specific parameters
+        cmd.extend(["--gpu-memory-utilization", str(gpu_memory)])
+        if tensor_parallel_size > 1:
+            cmd.extend(["--tensor-parallel-size", str(tensor_parallel_size)])
+    
+    # Add extra arguments (works for both GPU and CPU/macOS modes)
+    if extra_args:
+        if isinstance(extra_args, list):
+            cmd.extend(extra_args)
         else:
-            cmd.extend(["--device", "cpu"])
-            if dtype == "auto":
-                dtype = "float32"
-        
-        if max_model_len:
-            cmd.extend(["--max-model-len", str(max_model_len)])
-        
-        cmd.extend(["--dtype", dtype])
-        
-        # Add extra arguments
-        if extra_args:
-            if isinstance(extra_args, list):
-                cmd.extend(extra_args)
-            else:
-                cmd.extend(str(extra_args).split())
+            cmd.extend(str(extra_args).split())
 
     # Run the container
     exit_code, stdout, stderr = await _run_command(cmd, timeout=60.0)
@@ -454,7 +452,7 @@ async def start_vllm(arguments: dict[str, Any]) -> list[TextContent]:
              f"- Model: `{model}`\n"
              f"- Mode: **{mode}**\n"
              f"- Port: {port}\n"
-             f"- Data Type: {dtype}\n"
+             f"- Data Type: {effective_dtype}\n"
              f"{gpu_info}"
              f"\n**API Endpoints:**\n"
              f"- Base URL: http://localhost:{port}\n"
